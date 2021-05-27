@@ -8,6 +8,7 @@ public class ZoomController : MonoBehaviour
     float maxZoom = 10f;
     float sensitivity = 0.01f;
     Vector3 touchStartPt;
+    Vector3 pinchAveragePos;
     // Start is called before the first frame update
     void Start()
     {
@@ -40,11 +41,21 @@ public class ZoomController : MonoBehaviour
             Vector3 secondTouchPos = secondTouch.position;
             Vector3 firstDelta = firstTouch.deltaPosition;
             Vector3 secondDelta = secondTouch.deltaPosition;
+            if (firstTouch.phase == TouchPhase.Began && secondTouch.phase==TouchPhase.Began)
+            {
+                Vector3 camPos = Camera.main.transform.position;
+                 pinchAveragePos = Camera.main.ScreenToWorldPoint(0.5f * (firstTouchPos + secondTouchPos));
+                Camera.main.transform.position = new Vector3(pinchAveragePos.x, pinchAveragePos.y, camPos.z);
+            }
+        
             float firstMagnitude =((secondTouchPos-secondDelta)-(firstTouchPos-firstDelta)).magnitude ;
             float changedMagnitude = (secondTouchPos - firstTouchPos).magnitude;
             float zoomMagnitude = changedMagnitude - firstMagnitude;
             float zoomDimension = Camera.main.orthographicSize-zoomMagnitude*sensitivity;
+            
              Camera.main.orthographicSize= Mathf.Clamp(zoomDimension, minZoom, maxZoom);
+           
+           
         }
     }
 }
