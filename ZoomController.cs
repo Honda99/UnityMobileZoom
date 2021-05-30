@@ -9,6 +9,7 @@ public class ZoomController : MonoBehaviour
     float sensitivity = 0.01f;
     Vector3 touchStartPt;
     Vector3 pinchAveragePos;
+    Vector3 pinchAverageWorldPos;
     // Start is called before the first frame update
     void Start()
     {
@@ -22,15 +23,15 @@ public class ZoomController : MonoBehaviour
         if (Input.touchCount == 1)
         {
             Touch singleTouch = Input.GetTouch(0);
-         
+
             if (singleTouch.phase == TouchPhase.Began)
             {
                 touchStartPt = Camera.main.ScreenToWorldPoint(singleTouch.position);
             }
             if (singleTouch.phase == TouchPhase.Moved)
             {
-                Vector3 touchDirection= touchStartPt-Camera.main.ScreenToWorldPoint(singleTouch.position);
-                Camera.main.transform.position +=touchDirection;
+                Vector3 touchDirection = touchStartPt - Camera.main.ScreenToWorldPoint(singleTouch.position);
+                Camera.main.transform.position += touchDirection;
             }
         }
         if (Input.touchCount == 2)
@@ -43,19 +44,28 @@ public class ZoomController : MonoBehaviour
             Vector3 secondDelta = secondTouch.deltaPosition;
             if (firstTouch.phase == TouchPhase.Began && secondTouch.phase==TouchPhase.Began)
             {
-                Vector3 camPos = Camera.main.transform.position;
-                 pinchAveragePos = Camera.main.ScreenToWorldPoint(0.5f * (firstTouchPos + secondTouchPos));
-                Camera.main.transform.position = new Vector3(pinchAveragePos.x, pinchAveragePos.y, camPos.z);
+                
+                 pinchAveragePos = 0.5f * (firstTouchPos + secondTouchPos);
+                pinchAverageWorldPos = Camera.main.ScreenToWorldPoint(pinchAveragePos);
+                //Debug.Log(" first pinch position" + pinchAveragePos);
             }
         
             float firstMagnitude =((secondTouchPos-secondDelta)-(firstTouchPos-firstDelta)).magnitude ;
             float changedMagnitude = (secondTouchPos - firstTouchPos).magnitude;
             float zoomMagnitude = changedMagnitude - firstMagnitude;
             float zoomDimension = Camera.main.orthographicSize-zoomMagnitude*sensitivity;
-            
-             Camera.main.orthographicSize= Mathf.Clamp(zoomDimension, minZoom, maxZoom);
-           
-           
+            Vector3 camPos = Camera.main.transform.position;
+            Camera.main.orthographicSize= Mathf.Clamp(zoomDimension, minZoom, maxZoom);
+            if (zoomMagnitude != 0)
+            {
+                //Debug.Log(" second pinch position" + pinchAveragePos);
+                //Debug.Log("touch pos" + 0.5f * (firstTouchPos + secondTouchPos));
+                Vector3 diff =  Camera.main.ScreenToWorldPoint(pinchAveragePos)-pinchAverageWorldPos;
+                Camera.main.transform.position = new Vector3(camPos.x - diff.x, camPos.y - diff.y, camPos.z);
+
+            }
+
+
         }
     }
 }
